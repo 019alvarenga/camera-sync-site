@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Camera Sync | Câmera para iPhone com o áudio da live</title>
+<meta name="description" content="Camera Sync é uma câmera manual para iPhone que recebe o som da mesa pelo Wi-Fi e sincroniza com o seu vídeo. Para quem grava eventos e transmissões ao vivo.">
+<meta name="theme-color" content="#000000">
+<meta property="og:title" content="Camera Sync">
+<meta property="og:description" content="O vídeo do iPhone com o áudio da live, sincronizado pelo app.">
+<meta property="og:type" content="website">
+<link rel="icon" href="img/icone.png">
+<link rel="apple-touch-icon" href="img/icone.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<script>document.documentElement.classList.add('js')</script>
+<style>
+:root{
+  /* Camera Sync. Cores tiradas da interface do app (preto, grafite do painel, âmbar dos rótulos,
+     vermelho do botão de gravar, verde da cápsula "Áudio da live").
+     Uma família só, Archivo, em três larguras: larga nos títulos, normal no texto, estreita no painel.
+     Layout: coluna alinhada à esquerda; duas pistas (vídeo em branco, áudio em âmbar) que se encaixam. */
+  --preto:#000;
+  --grafite:#1c1c1e;
+  --linha:#2c2c2e;
+  --branco:#f5f5f7;
+  --cinza:#98989f;
+  --ambar:#ffc729;
+  --rec:#ff453a;
+  --vivo:#30d158;
+  --fonte:"Archivo",-apple-system,BlinkMacSystemFont,"Helvetica Neue","Segoe UI",Roboto,Arial,sans-serif;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --gut:clamp(20px,4vw,48px);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:64px}
+body{background:var(--preto);color:var(--branco);font:400 17px/1.5 var(--fonte);-webkit-font-smoothing:antialiased;overflow-x:clip}
+img{display:block;max-width:100%;height:auto}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--ambar);outline-offset:3px;border-radius:6px}
+.w{max-width:1240px;margin-inline:auto;padding-inline:var(--gut)}
+
+/* tipografia */
+.d{font-stretch:112%;font-weight:700;letter-spacing:-.035em;line-height:1;text-wrap:balance}
+.t1{font-size:clamp(44px,7.8vw,100px)}
+.t2{font-size:clamp(32px,5vw,66px)}
+.t3{font-size:clamp(22px,2.3vw,30px);letter-spacing:-.025em;line-height:1.1}
+.lead{font-size:clamp(18px,1.8vw,22px);line-height:1.4;color:var(--cinza);max-width:33em}
+.peq{font-size:14px;color:var(--cinza)}
+.bloco{padding-block:clamp(88px,12vw,170px)}
+
+/* botões */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 24px;border-radius:999px;font-size:16px;font-weight:600;text-decoration:none;white-space:nowrap;transition:transform .25s var(--ease),background-color .2s}
+.btn.pri{background:var(--ambar);color:#000}
+.btn.pri:hover{background:#ffd75e;transform:translateY(-1px)}
+.btn.sec{background:var(--grafite);color:var(--branco);box-shadow:inset 0 0 0 1px var(--linha)}
+.btn.sec:hover{background:#29292c}
+.btn[aria-disabled="true"]{color:var(--cinza);pointer-events:none}
+.btn img{width:22px;height:22px;border-radius:5px}
+.btn.mini{min-height:34px;padding:0 14px;font-size:13px}
+
+/* barra do topo */
+.nav{position:fixed;inset:0 0 auto;z-index:40;height:52px;background:rgba(0,0,0,.72);-webkit-backdrop-filter:saturate(160%) blur(18px);backdrop-filter:saturate(160%) blur(18px);border-bottom:1px solid rgba(255,255,255,.08)}
+.nav .w{height:100%;display:flex;align-items:center;gap:clamp(14px,2.4vw,30px)}
+.marca{display:flex;align-items:center;gap:10px;margin-right:auto;font-weight:650;font-stretch:108%;letter-spacing:-.02em;text-decoration:none}
+.marca img{width:26px;height:26px;border-radius:6px}
+.nav .l{font-size:14px;color:#c7c7cc;text-decoration:none}
+.nav .l:hover{color:#fff}
+@media(max-width:780px){.nav .l{display:none}}
+
+/* moldura do iPhone */
+.fone{--pw:300px;width:var(--pw);flex:none;padding:calc(var(--pw)*.032);border-radius:calc(var(--pw)*.172);background:linear-gradient(150deg,#5c5c62 0%,#1d1d20 22%,#0c0c0e 55%,#3a3a3f 100%);box-shadow:0 60px 110px -40px #000}
+.fone .tela{position:relative;aspect-ratio:1206/2622;border-radius:calc(var(--pw)*.142);overflow:hidden;background:#000;box-shadow:0 0 0 calc(var(--pw)*.012) #000}
+.fone .tela img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+
+/* abertura */
+.hero{position:relative;padding-top:clamp(104px,15vh,160px);overflow:clip}
+.hero h1{display:grid;gap:.05em}
+.pista{display:block}
+.pista.a{color:var(--ambar)}
+.hero-baixo{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:var(--gut);align-items:start;margin-top:clamp(26px,4vw,54px)}
+.hero .acoes{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.hero .peq{margin-top:20px;max-width:30em}
+.palco{position:relative;display:flex;justify-content:center;perspective:1600px}
+.palco::before{content:"";position:absolute;left:50%;top:38%;width:120%;aspect-ratio:1;transform:translate(-50%,-50%);background:radial-gradient(closest-side,rgba(255,199,41,.13),transparent);pointer-events:none}
+.hero .fone{--pw:clamp(250px,27vw,370px);position:relative;transform-origin:50% 35%;transform:translateY(calc(var(--hp,0)*-60px)) rotateX(calc((1 - var(--hp,0))*12deg)) rotateY(calc((1 - var(--hp,0))*-18deg)) rotateZ(calc((1 - var(--hp,0))*4deg));will-change:transform}
+@keyframes encaixar{from{transform:translateX(1.15em);opacity:.3}to{transform:none;opacity:1}}
+@keyframes subir{from{transform:translateY(70px);opacity:0}to{transform:none;opacity:1}}
+.pista.a{animation:encaixar 1.2s .35s var(--ease) both}
+.palco{animation:subir 1.3s .15s var(--ease) both}
+@media(max-width:780px){
+  .t1{font-size:12.4vw}
+  .hero-baixo{grid-template-columns:1fr}
+  .hero .fone{--pw:min(70vw,300px)}
+  .palco{margin-top:20px}
+}
+
+/* frase que acende */
+.frase{padding-block:clamp(90px,15vh,170px)}
+.frase p{font-size:clamp(27px,4.4vw,58px);line-height:1.08;max-width:19em;text-wrap:pretty}
+.js .frase span{color:#4a4a50;transition:color .3s linear}
+.js .frase span.on{color:var(--branco)}
+
+/* cena da sincronia */
+.sinc{position:relative;height:440vh}
+.sinc-fix{position:sticky;top:0;height:100vh;height:100svh;display:flex;align-items:center;padding-top:52px}
+.sinc-in{width:100%;display:grid;gap:clamp(16px,3.6vh,40px)}
+.sinc-topo{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:end}
+.legendas{display:grid}
+.leg h2{max-width:13em}
+.leg p{margin-top:14px}
+.js .leg{grid-area:1/1;opacity:0;transform:translateY(14px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.js .leg.on{opacity:1;transform:none}
+.medida{text-align:right;font-variant-numeric:tabular-nums;transition:opacity .4s}
+.js .medida{opacity:0}
+.js .medida.on{opacity:1}
+.medida b{display:block;font-stretch:112%;font-weight:700;font-size:clamp(44px,6.6vw,92px);letter-spacing:-.04em;line-height:.9;transition:color .3s}
+.medida b small{font-size:.42em;letter-spacing:-.02em;margin-left:.12em}
+.medida.ok b{color:var(--vivo)}
+.medida>span{display:block;margin-top:8px;font-size:14px;color:var(--cinza)}
+#ondas{display:block;width:100%;height:clamp(170px,38vh,400px)}
+.rot{display:flex;align-items:center;gap:9px;font-size:14px;color:var(--cinza)}
+.rot i{width:8px;height:8px;border-radius:50%;background:#aeaeb2;flex:none}
+.rot.live i{background:var(--ambar)}
+.pe-pistas{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.estado{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--vivo);transition:opacity .4s}
+.estado i{width:8px;height:8px;border-radius:50%;background:var(--vivo)}
+.js .estado{opacity:0}
+.js .estado.on{opacity:1}
+.pistas{display:grid;gap:10px}
+.rot .depois{display:none}
+.pistas.final .rot .antes{display:none}
+.pistas.final .rot .depois{display:inline}
+.pistas.final .rot i{background:var(--ambar)}
+.rot.live{transition:opacity .4s}
+.pistas.final .rot.live{opacity:0}
+@media(max-width:780px){
+  .sinc-topo{grid-template-columns:1fr;gap:14px}
+  .medida{text-align:left;display:flex;align-items:baseline;gap:12px}
+  .medida>span{margin:0}
+  .leg p{font-size:17px}
+}
+
+/* câmera */
+.hud{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));margin-top:clamp(36px,5vw,64px);padding-block:clamp(16px,2.2vw,28px);background:var(--grafite);border-radius:clamp(22px,3vw,36px)}
+.hud>div{padding-inline:clamp(8px,1.4vw,20px);text-align:center;border-left:1px solid var(--linha)}
+.hud>div:first-child{border-left:0}
+.hud dt{font-stretch:78%;font-weight:650;font-size:clamp(12px,1.2vw,16px);letter-spacing:.07em;color:var(--ambar)}
+.hud dt.auto{color:var(--cinza)}
+.hud .v{font-size:clamp(22px,3.3vw,44px);font-weight:500;letter-spacing:-.02em;line-height:1.15;font-variant-numeric:tabular-nums}
+.hud .x{margin-top:6px;font-size:13px;line-height:1.3;color:var(--cinza)}
+@media(max-width:720px){
+  .hud{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:20px}
+  .hud>div:nth-child(4){border-left:0}
+}
+.vitrine{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:var(--gut);margin-top:clamp(40px,6vw,80px)}
+.vit-fone{position:sticky;top:0;height:100vh;height:100svh;display:flex;align-items:center;justify-content:center;padding-top:52px}
+.vit-fone .fone{--pw:min(330px,calc((100vh - 170px)*.44))}
+.js .vit-fone img{opacity:0;transform:scale(1.03);transition:opacity .45s ease,transform .7s var(--ease)}
+.js .vit-fone img.on{opacity:1;transform:none}
+.vit-txt article{min-height:76vh;display:flex;flex-direction:column;justify-content:center;gap:14px;max-width:29em}
+.vit-txt p{color:var(--cinza);font-size:clamp(17px,1.5vw,20px)}
+.vit-txt .fone{display:none}
+@media(max-width:820px){
+  .vitrine{display:block}
+  .vit-fone{display:none}
+  .vit-txt article{min-height:0;padding-block:36px}
+  .vit-txt .fone{display:block;--pw:min(230px,60vw);margin:22px auto 0}
+}
+.specs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--gut);margin-top:clamp(40px,6vw,80px);border-bottom:1px solid var(--linha)}
+.specs>div{display:grid;grid-template-columns:10.5em minmax(0,1fr);gap:16px;padding-block:16px;border-top:1px solid var(--linha)}
+.specs dt{color:var(--cinza)}
+@media(max-width:820px){.specs{grid-template-columns:1fr}.specs>div{grid-template-columns:8.5em minmax(0,1fr)}}
+
+/* como funciona */
+.caminho{display:grid;grid-template-columns:auto minmax(48px,1fr) auto minmax(48px,1fr) auto;align-items:center;gap:18px;margin-block:clamp(36px,5vw,64px);padding:clamp(22px,3vw,36px);background:var(--grafite);border-radius:clamp(22px,3vw,32px)}
+.no{display:flex;align-items:center;gap:14px}
+.no svg{width:38px;height:38px;flex:none;fill:none;stroke:var(--branco);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.no b{display:block;font-weight:600;line-height:1.25}
+.no span{display:block;font-size:14px;color:var(--cinza)}
+.fio{position:relative;height:2px;background:repeating-linear-gradient(90deg,var(--ambar) 0 8px,transparent 8px 18px);animation:correr .9s linear infinite}
+.fio::after{content:attr(data-rotulo);position:absolute;left:50%;bottom:10px;transform:translateX(-50%);font-size:13px;color:var(--cinza);white-space:nowrap}
+@keyframes correr{to{background-position:18px 0}}
+@keyframes descer{to{background-position:0 18px}}
+@media(max-width:900px){
+  .caminho{grid-template-columns:1fr;gap:12px}
+  .fio{width:2px;height:46px;margin-left:18px;background:repeating-linear-gradient(180deg,var(--ambar) 0 8px,transparent 8px 18px);animation-name:descer}
+  .fio::after{left:18px;bottom:auto;top:50%;transform:translateY(-50%)}
+}
+.como-grade{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:var(--gut);align-items:start}
+.passos{list-style:none;counter-reset:p;border-bottom:1px solid var(--linha)}
+.passos li{counter-increment:p;display:grid;grid-template-columns:clamp(44px,6vw,80px) minmax(0,1fr);column-gap:16px;row-gap:8px;padding-block:26px;border-top:1px solid var(--linha)}
+.passos li::before{content:counter(p);grid-row:span 2;font-stretch:112%;font-weight:700;font-size:clamp(38px,4.6vw,60px);line-height:.9;color:var(--ambar)}
+.passos p{color:var(--cinza)}
+.janela{position:sticky;top:84px;border-radius:2.4%/2.3%}
+.como .mais{display:inline-block;margin-top:28px;color:var(--ambar);text-underline-offset:4px}
+@media(max-width:900px){.como-grade{grid-template-columns:minmax(0,1fr)}.janela{position:static;max-width:min(520px,100%)}}
+
+/* assinatura */
+.plano-in{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:var(--gut);align-items:end}
+.plano .lead{margin-top:22px}
+.plano .acoes{margin-top:30px}
+.inclui{list-style:none;border-bottom:1px solid var(--linha)}
+.inclui li{padding-block:15px;border-top:1px solid var(--linha)}
+@media(max-width:820px){.plano-in{grid-template-columns:1fr}}
+
+/* download */
+.baixar .lead{margin-top:20px}
+.so{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;margin-top:clamp(32px,4vw,52px);background:var(--linha);border:1px solid var(--linha);border-radius:clamp(22px,3vw,32px);overflow:hidden}
+.so>div{display:grid;justify-items:start;gap:8px;padding:clamp(24px,3.4vw,44px);background:var(--preto)}
+.so p{color:var(--cinza);margin-bottom:14px}
+.baixar .peq{margin-top:18px}
+@media(max-width:640px){.so{grid-template-columns:1fr}}
+
+/* dúvidas */
+.faq-grade{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:var(--gut);align-items:start}
+.faq details{border-top:1px solid var(--linha)}
+.faq details:last-child{border-bottom:1px solid var(--linha)}
+.faq summary{display:flex;justify-content:space-between;align-items:center;gap:20px;padding-block:22px;cursor:pointer;list-style:none;font-size:clamp(18px,1.8vw,22px);font-weight:600;letter-spacing:-.015em}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"";flex:none;width:12px;height:12px;border-right:2px solid var(--ambar);border-bottom:2px solid var(--ambar);transform:rotate(45deg) translate(-3px,-3px);transition:transform .3s var(--ease)}
+.faq details[open] summary::after{transform:rotate(-135deg) translate(-3px,-3px)}
+.faq details p{padding-bottom:24px;color:var(--cinza);max-width:38em}
+@media(max-width:820px){.faq-grade{grid-template-columns:1fr}}
+
+/* rodapé */
+footer{padding-top:48px;border-top:1px solid var(--linha);overflow:clip}
+.pe-links{display:flex;flex-wrap:wrap;gap:8px 28px}
+.pe-links a{text-decoration:none;color:#c7c7cc}
+.pe-links a:hover{color:#fff}
+footer .peq{margin-top:22px;max-width:44em;line-height:1.6}
+.assinatura{margin-top:clamp(40px,6vw,80px);font-size:13vw;line-height:.8;letter-spacing:-.05em;color:var(--grafite);white-space:nowrap;margin-bottom:-.09em;user-select:none}
+
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .pista.a,.palco,.fio{animation:none}
+  .hero .fone{transform:none}
+  .js .frase span{color:var(--branco)}
+  .sinc{height:auto}
+  .sinc-fix{position:static;height:auto;padding-block:clamp(88px,12vw,170px)}
+  .js .leg{grid-area:auto;opacity:1;transform:none;margin-bottom:28px}
+  .js .medida,.js .estado{opacity:1}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-label="Seções do site"><div class="w">
+  <a class="marca" href="#topo"><img src="img/icone.png" alt="" width="26" height="26">Camera Sync</a>
+  <a class="l" href="#sincronia">Sincronia</a>
+  <a class="l" href="#camera">Câmera</a>
+  <a class="l" href="#como">Como funciona</a>
+  <a class="l" href="#planos">Assinatura</a>
+  <a class="l" href="#download">Download</a>
+  <a class="btn sec mini" data-appstore aria-disabled="true">Em breve na App Store</a>
+</div></nav>
+
+<main>
+
+<header class="hero" id="topo"><div class="w">
+  <h1 class="d t1"><span class="pista">O vídeo do iPhone.</span> <span class="pista a">O áudio da live.</span></h1>
+  <div class="hero-baixo">
+    <div>
+      <p class="lead">Camera Sync é uma câmera manual para iPhone que recebe o som da mesa pelo Wi-Fi e sincroniza com o seu vídeo. Você grava, para e já pode publicar.</p>
+      <div class="acoes">
+        <a class="btn pri" href="#sincronia">Ver a sincronia</a>
+        <a class="btn sec" data-appstore aria-disabled="true">Em breve na App Store</a>
+      </div>
+      <p class="peq">Para iPhone 11 ou mais novo, com iOS 17. Na primeira assinatura, 7 dias grátis.</p>
+    </div>
+    <div class="palco">
+      <div class="fone"><div class="tela"><img src="img/5-camera-audio-live.jpg" alt="Tela da câmera do Camera Sync: painel com ISO, obturador, balanço de branco e foco, e a cápsula verde Áudio da live" width="900" height="1957"></div></div>
+    </div>
+  </div>
+</div></header>
+
+<section class="frase"><div class="w">
+  <p class="d" id="frase">Quem grava evento conhece o problema. O microfone do celular pega eco, plateia e caixa de som. O áudio bom está na mesa, indo para a live.</p>
+</div></section>
+
+<section class="sinc" id="sincronia" aria-label="Como a sincronia acontece">
+  <div class="sinc-fix"><div class="w sinc-in">
+    <div class="sinc-topo">
+      <div class="legendas">
+        <div class="leg on"><h2 class="d t2">O iPhone grava o som do lugar.</h2><p class="lead">Com eco e barulho. Esse som não vai para o vídeo final. Ele serve de referência.</p></div>
+        <div class="leg"><h2 class="d t2">O som da mesa chega pelo Wi-Fi.</h2><p class="lead">O Camera Sync Link, no computador da transmissão, envia o áudio limpo da live. O iPhone guarda o horário de cada trecho.</p></div>
+        <div class="leg"><h2 class="d t2">O app encaixa um no outro.</h2><p class="lead">Ele compara os dois sons e alinha com precisão de milissegundos. Você não bate palma nem arrasta nada na linha do tempo.</p></div>
+        <div class="leg"><h2 class="d t2">O áudio limpo entra no vídeo.</h2><p class="lead">O som do microfone sai e o da mesa fica no lugar. Corte o começo e o fim, salve na galeria ou envie para o Instagram.</p></div>
+      </div>
+      <div class="medida" id="medida" aria-hidden="true"><b><span id="ms">412</span><small>ms</small></b><span>de diferença entre os dois sons</span></div>
+    </div>
+    <div class="pistas" id="pistas">
+      <div class="rot"><i></i><span class="antes">Som do vídeo, gravado pelo microfone do iPhone</span><span class="depois">Vídeo do iPhone com o áudio da live</span></div>
+      <canvas id="ondas" role="img" aria-label="Animação: a onda do áudio da live desliza até coincidir com a onda do som gravado pelo iPhone e depois ocupa o lugar dela."></canvas>
+      <div class="pe-pistas">
+        <div class="rot live"><i></i>Áudio da live, recebido pelo Wi-Fi</div>
+        <div class="estado" id="estado"><i></i>Sincronizado</div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<section class="bloco" id="camera"><div class="w">
+  <h2 class="d t2">Câmera manual, do ISO ao foco.</h2>
+  <p class="lead" style="margin-top:20px">Trave exposição, branco e foco para a imagem não mudar no meio da gravação. O painel abaixo é o mesmo que aparece no topo da câmera.</p>
+
+  <dl class="hud">
+    <div><dt>ISO</dt><dd class="v">100</dd><dd class="x">Sensibilidade</dd></div>
+    <div><dt>OBT</dt><dd class="v">1/60</dd><dd class="x">Obturador</dd></div>
+    <div><dt class="auto">ƒ</dt><dd class="v">1.8</dd><dd class="x">Abertura da lente</dd></div>
+    <div><dt>WB</dt><dd class="v">5600K</dd><dd class="x">Balanço de branco</dd></div>
+    <div><dt>MATIZ</dt><dd class="v">+5</dd><dd class="x">Verde ou magenta</dd></div>
+    <div><dt class="auto">FOCO</dt><dd class="v">AF</dd><dd class="x">Automático ou manual</dd></div>
+  </dl>
+
+  <div class="vitrine">
+    <div class="vit-fone" aria-hidden="true"><div class="fone"><div class="tela">
+      <img class="on" src="img/5-camera-audio-live.jpg" alt="">
+      <img src="img/3-ajustes-video.jpg" alt="" loading="lazy">
+      <img src="img/1-ajustes-lut.jpg" alt="" loading="lazy">
+      <img src="img/6-rede-local.jpg" alt="" loading="lazy">
+    </div></div></div>
+    <div class="vit-txt">
+      <article data-i="0">
+        <h3 class="d t3">O áudio da live sempre à vista.</h3>
+        <p>Uma cápsula na câmera fica verde enquanto o som da transmissão está chegando. Ao lado ficam o medidor do microfone do iPhone e o histograma da exposição.</p>
+        <div class="fone"><div class="tela"><img src="img/5-camera-audio-live.jpg" alt="Câmera com a cápsula Áudio da live em verde" loading="lazy"></div></div>
+      </article>
+      <article data-i="1">
+        <h3 class="d t3">Do 720p ao 4K, do H.264 ao ProRes.</h3>
+        <p>Escolha resolução, quadros por segundo e taxa de gravação. O app mostra qual ajuste é recomendado para lives.</p>
+        <div class="fone"><div class="tela"><img src="img/3-ajustes-video.jpg" alt="Ajustes de vídeo: resolução, quadros por segundo, formato e taxa de gravação" loading="lazy"></div></div>
+      </article>
+      <article data-i="2">
+        <h3 class="d t3">Sua cor, na tela e no arquivo.</h3>
+        <p>Importe LUTs no formato .cube. Veja a imagem com a LUT enquanto grava e decida se ela entra no vídeo ou se o arquivo fica original.</p>
+        <div class="fone"><div class="tela"><img src="img/1-ajustes-lut.jpg" alt="Ajustes de LUT: ver na tela com a LUT e gravar com a LUT" loading="lazy"></div></div>
+      </article>
+      <article data-i="3">
+        <h3 class="d t3">O áudio fica dentro do Wi-Fi do evento.</h3>
+        <p>Nada passa pela internet. O som sai do computador da transmissão e vai direto para o iPhone, mesmo onde o sinal de celular é ruim.</p>
+        <div class="fone"><div class="tela"><img src="img/6-rede-local.jpg" alt="Ajustes de áudio da rede local, com o endereço do computador e o aviso Recebendo áudio" loading="lazy"></div></div>
+      </article>
+    </div>
+  </div>
+
+  <dl class="specs">
+    <div><dt>Resolução</dt><dd>720p, 1080p e 4K</dd></div>
+    <div><dt>Quadros por segundo</dt><dd>24, 25, 30 e 60, com opção de quadros de TV</dd></div>
+    <div><dt>Formato</dt><dd>H.264, H.265 e ProRes</dd></div>
+    <div><dt>Cor</dt><dd>Apple Log e LUTs .cube</dd></div>
+    <div><dt>Estabilização</dt><dd>Desligada, padrão ou cinematográfica</dd></div>
+    <div><dt>Auxílios</dt><dd>Zebra, falsa cor, histograma, realce de foco, grade e nível</dd></div>
+    <div><dt>Foto</dt><dd>RAW e 48 MP nos modelos compatíveis</dd></div>
+    <div><dt>Depois de gravar</dt><dd>Corte, salve na galeria ou envie para o Instagram</dd></div>
+  </dl>
+</div></section>
+
+<section class="bloco como" id="como"><div class="w">
+  <h2 class="d t2">Você configura uma vez.</h2>
+  <p class="lead" style="margin-top:20px">Quem opera a transmissão deixa o computador enviando o áudio. Quem grava só conecta o iPhone.</p>
+
+  <div class="caminho" role="img" aria-label="Caminho do áudio: da mesa de som, OBS ou vMix para o Camera Sync Link no computador e, pelo Wi-Fi do local, para o iPhone.">
+    <div class="no"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M10 6v28M20 6v28M30 6v28"/><rect x="6.5" y="22" width="7" height="5" rx="1.5" fill="#1c1c1e"/><rect x="16.5" y="10" width="7" height="5" rx="1.5" fill="#1c1c1e"/><rect x="26.5" y="18" width="7" height="5" rx="1.5" fill="#1c1c1e"/></svg><div><b>Mesa de som, OBS ou vMix</b><span>o som que vai para a live</span></div></div>
+    <div class="fio" data-rotulo="áudio"></div>
+    <div class="no"><svg viewBox="0 0 40 40" aria-hidden="true"><rect x="7" y="8" width="26" height="18" rx="2.5"/><path d="M3 31h34"/></svg><div><b>Camera Sync Link</b><span>no computador da transmissão</span></div></div>
+    <div class="fio" data-rotulo="Wi-Fi do local"></div>
+    <div class="no"><svg viewBox="0 0 40 40" aria-hidden="true"><rect x="11" y="4" width="18" height="32" rx="4.5"/><path d="M17.5 8.5h5"/></svg><div><b>iPhone com Camera Sync</b><span>grava vídeo e áudio juntos</span></div></div>
+  </div>
+
+  <div class="como-grade">
+    <div>
+      <ol class="passos">
+        <li><h3 class="d t3">Instale o Camera Sync Link no computador da transmissão.</h3><p>É gratuito, para Mac e Windows. Escolha de onde vem o áudio (OBS, vMix ou mesa de som) e ele mostra um endereço na tela.</p></li>
+        <li><h3 class="d t3">Conecte o iPhone no mesmo Wi-Fi.</h3><p>No Camera Sync, abra Ajustes e depois Áudio da rede local. Digite o endereço e toque em Conectar. A cápsula verde na câmera confirma que o som está chegando.</p></li>
+        <li><h3 class="d t3">Grave como sempre.</h3><p>Deixe o microfone do iPhone ligado, mesmo baixo. Quando você para de gravar, o app alinha o vídeo com o áudio da live.</p></li>
+      </ol>
+      <a class="mais" href="https://alvarengafrodrigo.wixsite.com/camera-sync/manual">Ler o manual completo, com OBS e vMix</a>
+    </div>
+    <img class="janela" src="img/camera-sync-link-mac.jpg" alt="Janela do Camera Sync Link no Mac: estado No ar, origem do áudio, endereço para digitar no iPhone e nível do som" width="1092" height="1113" loading="lazy">
+  </div>
+</div></section>
+
+<section class="bloco plano" id="planos"><div class="w plano-in">
+  <div>
+    <h2 class="d t1">7 dias grátis.</h2>
+    <p class="lead">Depois, assinatura mensal pela App Store. O preço aparece na App Store antes de você assinar. Para cancelar, abra Ajustes do iPhone, toque no seu nome e em Assinaturas. O acesso continua até o fim do período pago.</p>
+    <div class="acoes"><a class="btn sec" data-appstore aria-disabled="true"><img src="img/icone.png" alt="" width="22" height="22">Em breve na App Store</a></div>
+  </div>
+  <ul class="inclui">
+    <li>Câmera manual completa</li>
+    <li>Sincronização automática com o áudio da live</li>
+    <li>LUTs, Apple Log e ProRes</li>
+    <li>Corte e envio para o Instagram</li>
+    <li>Camera Sync Link para Mac e Windows, sem custo</li>
+  </ul>
+</div></section>
+
+<section class="bloco baixar" id="download"><div class="w">
+  <h2 class="d t2">Camera Sync Link</h2>
+  <p class="lead">Programa gratuito que envia o áudio da sua live (OBS, vMix ou mesa de som) para o Camera Sync pelo Wi-Fi. Instale no computador da transmissão.</p>
+  <div class="so">
+    <div><h3 class="d t3">Mac</h3><p>macOS 14 ou mais novo, Apple Silicon ou Intel</p><a class="btn pri" href="https://2a21734c-69f6-4504-a261-927858d7693c.filesusr.com/archives/d170e5_df03f25772c442128ba86a9d9cec2d08.zip?dn=Camera-Sync-Link-Mac.zip">Baixar para Mac</a></div>
+    <div><h3 class="d t3">Windows</h3><p>Windows 10 ou 11 de 64 bits</p><a class="btn pri" href="https://2a21734c-69f6-4504-a261-927858d7693c.filesusr.com/archives/d170e5_c17065db33644975b088064f418dac9c.zip?dn=Camera-Sync-Link-Windows.zip">Baixar para Windows</a></div>
+  </div>
+  <p class="peq">O Camera Sync Link usa o FFmpeg, licenciado sob a LGPL.</p>
+</div></section>
+
+<section class="bloco faq" id="duvidas"><div class="w faq-grade">
+  <h2 class="d t2">Dúvidas</h2>
+  <div>
+    <details><summary>Preciso de internet?</summary><p>Para entrar na conta e assinar, sim. Gravar e sincronizar funcionam dentro da rede Wi-Fi do evento.</p></details>
+    <details><summary>Funciona em qualquer iPhone?</summary><p>No iPhone 11 ou mais novo, com iOS 17 ou superior. O Apple Log depende do modelo e está disponível do iPhone 15 Pro em diante.</p></details>
+    <details><summary>Preciso deixar o microfone do iPhone ligado?</summary><p>Sim, mesmo que baixo. É o som do ambiente que o app usa para achar o ponto exato de encaixe.</p></details>
+    <details><summary>O áudio não alinhou. E agora?</summary><p>Confira se o Camera Sync Link estava enviando áudio durante a gravação e se o microfone do iPhone captou o som do local. Depois toque em Sincronizar no vídeo. Se continuar, fale com o suporte.</p></details>
+    <details><summary>Meus vídeos vão para algum servidor?</summary><p>Não. Vídeos, fotos e áudio ficam no seu iPhone. Guardamos só o necessário para a sua conta e a assinatura.</p></details>
+  </div>
+</div></section>
+
+</main>
+
+<footer><div class="w">
+  <nav class="pe-links" aria-label="Páginas de apoio">
+    <a href="https://alvarengafrodrigo.wixsite.com/camera-sync/manual">Manual</a>
+    <a href="https://alvarengafrodrigo.wixsite.com/camera-sync/suporte">Suporte</a>
+    <a href="https://alvarengafrodrigo.wixsite.com/camera-sync/privacidade">Privacidade</a>
+    <a href="https://alvarengafrodrigo.wixsite.com/camera-sync/termos">Termos</a>
+  </nav>
+  <p class="peq">© 2026 Claquete Labs. 51.687.565 Rodrigo Fernandez Alvarenga, CNPJ 51.687.565/0001-20.<br>Apple, iPhone, App Store e Apple Log são marcas da Apple Inc.</p>
+  <div class="assinatura d" aria-hidden="true"><span>Camera Sync</span></div>
+</div></footer>
+
+<script>
+(()=>{
+  /* Quando o app for aprovado, cole o link da App Store entre as aspas. Os botões mudam sozinhos. */
+  const APP_STORE_URL='';
+
+  const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+  const calmo=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const lim=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+  const suave=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+
+  if(APP_STORE_URL) $$('[data-appstore]').forEach(a=>{
+    const img=a.querySelector('img');
+    a.href=APP_STORE_URL; a.removeAttribute('aria-disabled');
+    a.textContent='Baixar na App Store'; if(img) a.prepend(img);
+    a.classList.remove('sec'); a.classList.add('pri');
+  });
+
+  /* frase: uma palavra por vez */
+  const fr=$('#frase');
+  fr.innerHTML=fr.textContent.trim().split(/\s+/).map(p=>'<span>'+p+'</span>').join(' ');
+  const palavras=$$('span',fr); let acesas=-1;
+
+  /* vitrine: a tela do iPhone acompanha o texto que está no meio da janela */
+  const telas=$$('.vit-fone img');
+  const olho=new IntersectionObserver(es=>es.forEach(e=>{
+    if(!e.isIntersecting) return;
+    const i=+e.target.dataset.i; telas.forEach((t,k)=>t.classList.toggle('on',k===i));
+  }),{rootMargin:'-45% 0px -45% 0px'});
+  $$('.vit-txt article').forEach(a=>olho.observe(a));
+
+  /* ondas da cena de sincronia: o mesmo som em duas versões */
+  const N=1400, limpo=new Float32Array(N), sujo=new Float32Array(N), picos=[];
+  let semente=11; const azar=()=>(semente=(semente*1664525+1013904223)>>>0)/4294967296;
+  for(let i=6;i<N-40;){
+    const dur=5+(azar()*20|0), forca=.3+azar()*.7;
+    for(let k=0;k<dur;k++) limpo[i+k]=Math.max(limpo[i+k],forca*Math.sin(Math.PI*(k+.5)/dur)*(.55+.45*azar()));
+    if(forca>.6&&dur>7&&(!picos.length||i-picos[picos.length-1]>14)) picos.push(i+(dur>>1));
+    i+=dur+(azar()<.22?8+(azar()*14|0):1+(azar()*3|0));
+  }
+  for(let i=0;i<N;i++){
+    let soma=0,c=0; for(let k=-6;k<=1;k++){const j=i+k; if(j>=0&&j<N){soma+=limpo[j];c++}}
+    const m=soma/c; sujo[i]=.08+.62*m+.15*azar()*(.3+m);
+  }
+
+  const tela=$('#ondas'), cx=tela.getContext('2d');
+  let W=0,H=0;
+  function ajustarTela(){
+    const dpr=Math.min(devicePixelRatio||1,2), r=tela.getBoundingClientRect();
+    W=r.width; H=r.height; tela.width=Math.round(W*dpr); tela.height=Math.round(H*dpr);
+    cx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  function barra(x,y,l,a){
+    if(cx.roundRect){cx.beginPath();cx.roundRect(x,y,l,a,l/2);cx.fill()} else cx.fillRect(x,y,l,a);
+  }
+  const legs=$$('.leg'), medida=$('#medida'), ms=$('#ms'), estado=$('#estado');
+  let faseAtual=-1, msAtual=-1;
+  const pistas=$('#pistas');
+  function cena(q,p){
+    const grava=lim(q*.6+lim(p/.12)*.4), chega=lim((p-.12)/.12), encaixe=suave(lim((p-.3)/.34)),
+          trava=lim((p-.64)/.06), troca=suave(lim((p-.78)/.14));
+    const passo=W<600?5:7, larg=passo-3, n=Math.ceil(W/passo), desvio=Math.round(n*.12)*(1-encaixe);
+    const alt=H*.36*(1+.2*troca), y1=H*.18+(H*.5-H*.18)*troca, y2=H*.82+(H*.5-H*.82)*troca, fim=grava*n;
+    cx.clearRect(0,0,W,H);
+    cx.fillStyle='rgba(255,255,255,.07)'; cx.fillRect(0,y1-.5,W,1); cx.fillRect(0,y2-.5,W,1);
+
+    if(chega>0&&troca<1){
+      const a1=y1+H*.18-2, a2=y2-H*.18+2;
+      for(const pk of picos){
+        const x1=pk*passo+larg/2, x2=x1+desvio*passo;
+        if(x2>W-4||pk>fim) continue;
+        const cor=trava>0?'rgba(48,209,88,'+(1-troca)+')':'rgba(255,199,41,'+.65*chega+')';
+        cx.strokeStyle=cor; cx.fillStyle=cor; cx.lineWidth=trava>0?2:1.5;
+        cx.setLineDash(trava>0?[]:[4,5]);
+        cx.beginPath(); cx.moveTo(x1,a1); cx.lineTo(x2,a2); cx.stroke();
+        cx.setLineDash([]);
+        cx.beginPath(); cx.arc(x1,a1,3,0,7); cx.arc(x2,a2,3,0,7); cx.fill();
+      }
+    }
+
+    cx.fillStyle='rgba(174,174,178,'+(1-.55*trava)*(1-.75*troca)+')';
+    for(let j=0;j<n&&j<fim;j++){const a=Math.max(2,sujo[j]*alt); barra(j*passo,y1-a/2,larg,a)}
+    if(grava<1){cx.fillStyle='#ff453a'; cx.fillRect(Math.min(W-2,fim*passo),y1-alt/2,2,alt)}
+
+    if(chega>0){
+      cx.fillStyle='rgba(255,199,41,'+chega+')';
+      for(let j=0;j<n;j++){
+        const x=(j+desvio)*passo; if(x>W) break;
+        const a=Math.max(2,(.03+.95*limpo[j])*alt); barra(x,y2-a/2,larg,a);
+      }
+    }
+
+    const fase=p<.12?0:p<.3?1:p<.76?2:3;
+    if(fase!==faseAtual){faseAtual=fase; legs.forEach((l,k)=>l.classList.toggle('on',k===fase))}
+    const v=Math.round(412*(1-encaixe));
+    if(v!==msAtual){msAtual=v; ms.textContent=v}
+    medida.classList.toggle('on',chega>0);
+    medida.classList.toggle('ok',encaixe>=1);
+    estado.classList.toggle('on',trava>.3);
+    pistas.classList.toggle('final',troca>.5);
+  }
+
+  /* rolagem: os valores seguem a página com um pequeno atraso, para o movimento ficar macio */
+  const hero=$('.hero'), sinc=$('.sinc');
+  let vh=0, m={}, alvo=scrollY, pos=scrollY, rodando=false;
+  const marca=$('.assinatura'), marcaTxt=$('span',marca);
+  function medir(){
+    marca.style.fontSize='100px';
+    marca.style.fontSize=(99.5*marca.clientWidth/marcaTxt.getBoundingClientRect().width)+'px';
+    vh=innerHeight;
+    const topo=e=>e.getBoundingClientRect().top+scrollY;
+    m={fr:{t:topo(fr),h:fr.offsetHeight}, sinc:{t:topo(sinc),h:sinc.offsetHeight}};
+    ajustarTela();
+  }
+  function pintar(y){
+    if(calmo){cena(1,1); return}
+    if(y<vh*1.5) hero.style.setProperty('--hp',lim(y/(vh*.75)).toFixed(3));
+    const n=Math.round(lim((y+vh*.82-m.fr.t)/(m.fr.h+vh*.3))*palavras.length);
+    if(n!==acesas){acesas=n; palavras.forEach((s,k)=>s.classList.toggle('on',k<n))}
+    if(y+vh>m.sinc.t&&y<m.sinc.t+m.sinc.h) cena(lim((y+vh-m.sinc.t)/vh),lim((y-m.sinc.t)/(m.sinc.h-vh)));
+  }
+  function quadro(){
+    pos+=(alvo-pos)*.16; if(Math.abs(alvo-pos)<.4) pos=alvo;
+    pintar(pos);
+    if(pos!==alvo) requestAnimationFrame(quadro); else rodando=false;
+  }
+  function acordar(){alvo=scrollY; if(!rodando){rodando=true; requestAnimationFrame(quadro)}}
+  addEventListener('scroll',acordar,{passive:true});
+  addEventListener('resize',()=>{medir(); pintar(pos)});
+  addEventListener('load',()=>{medir(); pintar(pos)});
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{medir(); pintar(pos)});
+  medir(); pintar(pos);
+})();
+</script>
+</body>
+</html>
