@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual | Camera Sync</title>
+<meta name="description" content="Como configurar o Camera Sync e o Camera Sync Link com OBS, vMix ou mesa de som.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="../img/icone.png">
+<link rel="apple-touch-icon" href="../img/icone.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../apoio.css">
+</head>
+<body>
+<nav class="nav" aria-label="Páginas do site"><div class="w">
+  <a class="marca" href="../"><img src="../img/icone.png" alt="" width="26" height="26">Camera Sync</a>
+  <a class="l hide" href="../manual/" aria-current="page">Manual</a>
+  <a class="l hide" href="../suporte/">Suporte</a>
+  <a class="l hide" href="../privacidade/">Privacidade</a>
+  <a class="l hide" href="../termos/">Termos</a>
+  <a class="l" href="../">Início</a>
+</div></nav>
+<main>
+<header class="topo"><div class="w">
+  <h1 class="d">Como configurar.</h1>
+  <p class="lead">O Camera Sync recebe o áudio da live pelo Wi-Fi, direto do computador da transmissão, com o programa gratuito Camera Sync Link (Mac e Windows). Não precisa instalar mais nada.</p>
+</div></header>
+<div class="w corpo">
+<section class="sec"><h2 class="d">Passo 1. Instale o Camera Sync Link</h2><div class="t">
+<p>Baixe o programa na <a href="../#download">seção Download</a> (Mac ou Windows), instale e abra.</p>
+<p>No Windows, se aparecer “O Windows protegeu o computador”, clique em <b>Mais informações</b> e depois em <b>Executar assim mesmo</b>. Quando o computador pedir permissão de rede ou de microfone, permita.</p></div></section><section class="sec"><h2 class="d">Passo 2. Escolha de onde vem o áudio</h2><div class="t">
+<h3 class="d">OBS</h3>
+<p>No Link, em <b>Origem</b>, escolha <b>OBS</b>. No OBS, abra <b>Configurações</b>.</p>
+<figure><img src="../img/obs-1-configuracoes.jpg" alt="Janela principal do OBS com o botão Configurações destacado" width="1372" height="800" loading="lazy"><figcaption>Abra as Configurações do OBS.</figcaption></figure>
+<p>Em <b>Saída</b>, mude o Modo de saída para <b>Avançado</b> e abra a aba <b>Gravação</b>.</p>
+<figure><img src="../img/obs-2-saida-avancado.jpg" alt="Configurações do OBS, em Saída, com Modo de saída Avançado e a aba Gravação destacados" width="890" height="693" loading="lazy"><figcaption>Saída, modo Avançado, aba Gravação.</figcaption></figure>
+<p>Em <b>Tipo</b>, escolha <b>Saída personalizada (FFmpeg)</b>. Use <b>Saída para URL</b>, com o caminho <code>tcp://127.0.0.1:9000</code> e o formato do contêiner <code>mpegts</code>.</p>
+<figure><img src="../img/obs-3-gravacao-ffmpeg.jpg" alt="Aba Gravação do OBS com Saída personalizada (FFmpeg), Saída para URL, o caminho tcp://127.0.0.1:9000 e o formato mpegts destacados" width="890" height="693" loading="lazy"><figcaption>Tipo, tipo de saída, caminho e formato.</figcaption></figure>
+<p>Clique em <b>Iniciar</b> no Link e depois em <b>Iniciar gravação</b> no OBS.</p>
+<h3 class="d">vMix</h3>
+<p>No Link, em <b>Origem</b>, escolha <b>vMix</b>. No vMix, abra <b>Stream</b> e use <b>Custom RTMP Server</b>, com a URL <code>rtmp://127.0.0.1:1935/live</code> e a chave <code>audio</code>. Clique em <b>Iniciar</b> no Link e depois em <b>Start</b> no vMix.</p>
+<h3 class="d">Mesa de som ou placa de áudio</h3>
+<p>No OBS, em Configurações, Saída e Gravação, escolha <b>Saída personalizada (FFmpeg)</b>. Use <b>Saída para URL</b>, com o caminho <code>tcp://127.0.0.1:9000</code> e o formato <code>mpegts</code>.</p></div></section><section class="sec"><h2 class="d">Passo 3. Conecte o iPhone</h2><div class="t">
+<p>No Camera Sync, vá em <b>Ajustes</b> e depois em <b>Áudio da rede local</b>.</p>
+<p>Digite o endereço que aparece no Link (exemplo: <code>192.168.0.10:8765</code>) e toque em <b>Conectar</b>. O iPhone e o computador precisam estar na mesma rede Wi-Fi.</p>
+<p class="aviso">Quando o som estiver chegando, a cápsula <b>Áudio da live</b> na câmera fica verde.</p></div></section><section class="sec"><h2 class="d">Passo 4. Grave</h2><div class="t">
+<p>Grave como sempre, com o microfone do iPhone ligado, mesmo que baixo. Ao parar, o vídeo sincroniza sozinho com o áudio da live.</p></div></section><section class="sec"><h2 class="d">Teste antes de transmitir</h2><div class="t">
+<p>Escolha <b>Chiado de teste</b> no Link e ligue <b>Ouvir no computador</b>. Grave um vídeo curto com o iPhone perto do computador e sincronize. Assim você confirma a conexão antes de começar a live.</p></div></section>
+</div>
+</main>
+<footer><div class="w">
+  <nav class="pe-links" aria-label="Páginas de apoio">
+    <a href="../manual/">Manual</a><a href="../suporte/">Suporte</a><a href="../privacidade/">Privacidade</a><a href="../termos/">Termos</a>
+  </nav>
+  <p class="peq">© 2026 Claquete Labs. 51.687.565 Rodrigo Fernandez Alvarenga, CNPJ 51.687.565/0001-20.<br>Apple, iPhone, App Store e Apple Log são marcas da Apple Inc.</p>
+</div></footer>
+</body>
+</html>
